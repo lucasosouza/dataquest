@@ -45,7 +45,7 @@ for k,v in title_mapping.items():
 
 # .value_counts -> count the number of ocurrences for each uniq entry
 #print pandas.value_counts(titles)
-titanic_train['Titles'] = titles
+titanic_train['Title'] = titles
 
 
 #############  identify which family each individual belong, using last name + family numbers to identify unique families
