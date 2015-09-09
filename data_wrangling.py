@@ -27,7 +27,7 @@ titanic_train["Fare"] = titanic_train["Fare"].fillna(titanic_train["Fare"].media
 #generate new columns
 titanic_train['FamilySize'] = titanic_train['SibSp'] + titanic_train['Parch']
 #.apply -> apply a function to all selected elements
-#titanic_train['NameLength'] = titanic_train['Name'].apply(lambda x: len(x))
+titanic_train['NameLength'] = titanic_train['Name'].apply(lambda x: len(x))
 
 #.fillna -> fill not available values
 titanic_test = pandas.read_csv("test.csv")
@@ -49,5 +49,5 @@ titanic_test["Fare"] = titanic_test["Fare"].fillna(titanic_test["Fare"].median()
 #generate new columns
 titanic_test['FamilySize'] = titanic_test['SibSp'] + titanic_test['Parch']
 #.apply -> apply a function to all selected elements
-#titanic_test['NameLength'] = titanic_test['Name'].apply(lambda x: len(x))
+titanic_test['NameLength'] = titanic_test['Name'].apply(lambda x: len(x))
 

@@ -68,7 +68,7 @@ titanic_train['FamilyId'] = family_ids
 
 #############  univariate feature selection
 #analyses column by column and see which correlate better with what trying to predict
-predictors = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'FamilySize', 'Title', 'FamilyId']
+predictors = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'FamilySize', 'Title', 'FamilyId', 'NameLength']
 
 #run the selector
 selector = feature_selection.SelectKBest(feature_selection.f_classif, k=5) 

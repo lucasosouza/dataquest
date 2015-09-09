@@ -32,7 +32,7 @@ for k,v in title_mapping.items():
 #print pandas.value_counts(titles)
 titanic['Title'] = titles
 
-#############  extract the family size and use it as a feature
+#############  extract the family identification and use it as a feature
 family_id_mapping = {}
 
 def get_family_id(row):
@@ -52,8 +52,9 @@ titanic['FamilyId'] = family_ids
 
 #############  the ensemble part
 
-predictorsGBC = ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked', 'FamilySize', 'Title', 'FamilyId']
-predictorsLR = ['Pclass', 'Sex', 'Fare', 'FamilySize', 'Title', 'Age', 'Embarked']
+predictorsGBC = ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked','Title', 'FamilyId', 'FamilySize', 'NameLength']
+predictorsLR = ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked', 'Title', 'FamilyId', 'FamilySize', 'NameLength']
+#removed Family Size
 algorithms = [
 	[GradientBoostingClassifier(random_state=1, n_estimators=25, max_depth=3), predictorsGBC],
 	[LogisticRegression(random_state=1), predictorsLR]
@@ -74,7 +75,7 @@ for train, test in kf:
 		test_predictions = alg.predict_proba(titanic[predictors].iloc[test,:].astype(float))[:,1]
 		full_test_predictions.append(test_predictions)
 	#Use a simple emsenbling scheme -- just average the predictions to get the final classification
-	test_predictions = (full_test_predictions[0] + full_test_predictions[1]) / 2 
+	test_predictions = (full_test_predictions[0] + full_test_predictions[1]) / 2
 	predictions = np.append(predictions, test_predictions)
 
 #import pdb;pdb.set_trace()
@@ -84,3 +85,40 @@ predictions[predictions <= .5] = 0
 #compute the accuracy
 accuracy = float(sum(predictions == titanic['Survived'])) / len(predictions)
 print accuracy
+
+#############  add all new elements to the test set
+
+#add family id
+family_ids = titanic_test.apply(get_family_id, axis=1)
+family_ids[titanic_test['FamilySize'] < 3] = -1
+titanic_test['FamilyId'] = family_ids
+
+#add title
+titles = titanic_test['Name'].apply(get_title)
+title_mapping = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Dr": 5, "Rev": 6, "Major": 7, "Col": 7, "Mlle": 8, "Mme": 8, "Don": 9, "Lady": 10, "Countess": 10, "Jonkheer": 10, "Sir": 9, "Capt": 7, "Ms": 2, "Dona": 10}
+for k,v in title_mapping.items():
+	titles[titles == k] = v
+titanic_test['Title'] = titles
+
+#############  run on test set
+
+full_predictions = []
+for alg, predictors in algorithms:
+	alg.fit(titanic[predictors], titanic['Survived'])
+	predictions = alg.predict_proba(titanic_test[predictors].astype(float))[:,1]
+	full_predictions.append(predictions)
+
+#weight gradient boosting higher (3/4) since it generates better predictions
+predictions = (full_predictions[0]*3 + full_predictions[1])/4
+
+#transform in 1 and 0 and convert to int
+predictions[predictions > .5] = 1
+predictions[predictions <= .5] = 0
+predictions = predictions.astype(int)
+
+#mke a submission file
+submission = pandas.DataFrame({
+	'PassengerId': titanic_test['PassengerId'],
+	'Survived': predictions
+})
+submission.to_csv('submit5-ensemble.csv',index=False)
